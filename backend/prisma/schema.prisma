@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum user_role {
+  user
+  admin
+}
+
+enum content_status {
+  draft
+  published
+  hidden
+}
+
+model users {
+  id                  String               @id @default(uuid()) @db.Uuid
+  username            String               @unique @db.Citext
+  email               String               @unique @db.Citext
+  password_hash       String
+  role                user_role            @default(user)
+  is_active           Boolean              @default(true)
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime             @updatedAt @db.Timestamptz(6)
+  user_refresh_tokens user_refresh_tokens[]
+  books_added         books[]              @relation("books_added")
+  ratings             ratings[]
+  reviews             reviews[]
+  review_comments     review_comments[]
+  articles            articles[]
+  article_comments    article_comments[]
+  favorite_books      favorite_books[]
+  collections         collections[]
+}
+
+model user_refresh_tokens {
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @db.Uuid
+  token_hash String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at DateTime  @db.Timestamptz(6)
+  revoked_at DateTime? @db.Timestamptz(6)
+  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model authors {
+  id          String         @id @default(uuid()) @db.Uuid
+  full_name   String
+  birth_date  DateTime?      @db.Date
+  death_date  DateTime?      @db.Date
+  bio         String?
+  created_at  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime       @updatedAt @db.Timestamptz(6)
+  book_authors book_authors[]
+}
+
+model genres {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @unique @db.Citext
+  description String?
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime      @updatedAt @db.Timestamptz(6)
+  book_genres book_genres[]
+}
+
+model tags {
+  id        String      @id @default(uuid()) @db.Uuid
+  name      String      @unique @db.Citext
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  book_tags book_tags[]
+}
+
+model books {
+  id               String            @id @default(uuid()) @db.Uuid
+  title            String
+  original_title   String?
+  description      String?
+  isbn13           String?
+  publication_year Int?
+  language         String?
+  cover_url        String?
+  added_by_user_id String?           @db.Uuid
+  status           content_status    @default(published)
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime          @updatedAt @db.Timestamptz(6)
+  added_by         users?            @relation("books_added", fields: [added_by_user_id], references: [id], onDelete: SetNull)
+  book_authors     book_authors[]
+  book_genres      book_genres[]
+  book_tags        book_tags[]
+  ratings          ratings[]
+  reviews          reviews[]
+  articles         articles[]
+  favorite_books   favorite_books[]
+  collection_books collection_books[]
+}
+
+model book_authors {
+  book_id      String  @db.Uuid
+  author_id    String  @db.Uuid
+  author_order Int?
+  role         String?
+  book         books   @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  author       authors @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@id([book_id, author_id])
+}
+
+model book_genres {
+  book_id  String @db.Uuid
+  genre_id String @db.Uuid
+  book     books  @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  genre    genres @relation(fields: [genre_id], references: [id], onDelete: Cascade)
+
+  @@id([book_id, genre_id])
+}
+
+model book_tags {
+  book_id String @db.Uuid
+  tag_id  String @db.Uuid
+  book    books  @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  tag     tags   @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([book_id, tag_id])
+}
+
+model ratings {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  book_id     String   @db.Uuid
+  architecture Int
+  characters  Int
+  lang_style  Int
+  idea        Int
+  vibe        Int
+  final_score Int
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+  user        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  book        books    @relation(fields: [book_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, book_id])
+}
+
+model reviews {
+  id          String         @id @default(uuid()) @db.Uuid
+  book_id     String         @db.Uuid
+  user_id     String         @db.Uuid
+  title       String
+  body        String
+  status      content_status @default(published)
+  is_spoiler  Boolean        @default(false)
+  created_at  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime       @updatedAt @db.Timestamptz(6)
+  book        books          @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  user        users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comments    review_comments[]
+}
+
+model review_comments {
+  id          String         @id @default(uuid()) @db.Uuid
+  review_id   String         @db.Uuid
+  user_id     String         @db.Uuid
+  body        String
+  status      content_status @default(published)
+  created_at  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime       @updatedAt @db.Timestamptz(6)
+  review      reviews        @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  user        users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model articles {
+  id          String         @id @default(uuid()) @db.Uuid
+  user_id     String         @db.Uuid
+  title       String
+  body        String
+  status      content_status @default(published)
+  book_id     String?        @db.Uuid
+  created_at  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime       @updatedAt @db.Timestamptz(6)
+  user        users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  book        books?         @relation(fields: [book_id], references: [id], onDelete: SetNull)
+  comments    article_comments[]
+}
+
+model article_comments {
+  id          String         @id @default(uuid()) @db.Uuid
+  article_id  String         @db.Uuid
+  user_id     String         @db.Uuid
+  body        String
+  status      content_status @default(published)
+  created_at  DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime       @updatedAt @db.Timestamptz(6)
+  article     articles       @relation(fields: [article_id], references: [id], onDelete: Cascade)
+  user        users          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model favorite_books {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  book_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  book       books    @relation(fields: [book_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, book_id])
+}
+
+model collections {
+  id               String             @id @default(uuid()) @db.Uuid
+  user_id          String             @db.Uuid
+  title            String
+  description      String?
+  is_public        Boolean            @default(false)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @updatedAt @db.Timestamptz(6)
+  user             users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  collection_books collection_books[]
+}
+
+model collection_books {
+  collection_id String    @db.Uuid
+  book_id       String    @db.Uuid
+  added_at      DateTime  @default(now()) @db.Timestamptz(6)
+  note          String?
+  collection    collections @relation(fields: [collection_id], references: [id], onDelete: Cascade)
+  book          books       @relation(fields: [book_id], references: [id], onDelete: Cascade)
+
+  @@id([collection_id, book_id])
+}
