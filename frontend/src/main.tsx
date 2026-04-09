@@ -10,7 +10,16 @@ import BookPage from './pages/BookPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
-import { ArticlePage, AuthorPage, CollectionPage, NotFoundPage, ReviewPage } from './pages/GenericPages';
+import { ArticlePage, AuthorPage, CollectionPage, NotFoundPage, PublicCollectionsPage, ReviewPage } from './pages/GenericPages';
+import {
+  CreateArticlePage,
+  CreateReviewPage,
+  EditArticlePage,
+  EditReviewPage,
+  FavoritesPage,
+  MyCollectionsPage,
+  MyRatingsPage
+} from './pages/UserLibraryPages';
 
 const router = createBrowserRouter([
   { path: '/', element: <Layout />, children: [
@@ -18,12 +27,20 @@ const router = createBrowserRouter([
     { path: 'catalog', element: <CatalogPage /> },
     { path: 'books/:id', element: <BookPage /> },
     { path: 'authors/:id', element: <AuthorPage /> },
+    { path: 'collections', element: <PublicCollectionsPage /> },
     { path: 'collections/:id', element: <CollectionPage /> },
     { path: 'articles/:id', element: <ArticlePage /> },
     { path: 'reviews/:id', element: <ReviewPage /> },
+    { path: 'reviews/new', element: <CreateReviewPage /> },
+    { path: 'reviews/:id/edit', element: <EditReviewPage /> },
+    { path: 'articles/new', element: <CreateArticlePage /> },
+    { path: 'articles/:id/edit', element: <EditArticlePage /> },
     { path: 'login', element: <LoginPage /> },
     { path: 'register', element: <RegisterPage /> },
     { path: 'profile', element: <ProfilePage /> },
+    { path: 'profile/my-ratings', element: <MyRatingsPage /> },
+    { path: 'profile/favorites', element: <FavoritesPage /> },
+    { path: 'profile/collections', element: <MyCollectionsPage /> },
     { path: 'admin', element: <AdminPage /> },
     { path: '*', element: <NotFoundPage /> }
   ] }

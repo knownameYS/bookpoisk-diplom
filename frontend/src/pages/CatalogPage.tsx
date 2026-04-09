@@ -1,19 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { BookCard } from '../components/ContentCards';
 
 export default function CatalogPage() {
   const { data, isLoading } = useQuery({ queryKey: ['books'], queryFn: async () => (await api.get('/books')).data });
-  if (isLoading) return <div>Loading skeleton...</div>;
-  if (!data?.length) return <div>Empty state: книг не найдено.</div>;
+
   return (
-    <div className="grid gap-3">
-      {data.map((b: any) => (
-        <Link key={b.id} to={`/books/${b.id}`} className="rounded bg-white p-4 shadow hover:shadow-md">
-          <div className="font-semibold">{b.title}</div>
-          <div className="text-sm text-slate-600">Средний рейтинг: {b.avg_final_score} / 84 · {b.rating_count} оценок</div>
-        </Link>
-      ))}
+    <div className="space-y-6">
+      <section className="surface-card p-5 sm:p-6">
+        <h1 className="text-3xl">Каталог книг</h1>
+        <p className="mt-2 text-sm text-slate-500">Единый visual language: чистая сетка, светлая типографика, аккуратные фильтры и акценты.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input className="input-modern" placeholder="Поиск по названию" />
+          <select className="input-modern"><option>Любой жанр</option></select>
+          <select className="input-modern"><option>Сортировка: популярные</option></select>
+        </div>
+      </section>
+
+      {isLoading && <div className="surface-card p-6 text-sm text-slate-500">Загружаем книги…</div>}
+      {!isLoading && !(data?.length) && <div className="surface-card p-6 text-sm text-slate-500">Книги пока не найдены.</div>}
+
+      <div className="grid gap-4">
+        {(data ?? []).map((b: any) => <BookCard key={b.id} book={b} />)}
+      </div>
     </div>
   );
 }
