@@ -9,7 +9,7 @@ export default function Root() {
   const [methodologyOpen, setMethodologyOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/20 to-purple-50/20">
       <Header />
       <Outlet />
       <Footer onMethodologyClick={() => setMethodologyOpen(true)} />

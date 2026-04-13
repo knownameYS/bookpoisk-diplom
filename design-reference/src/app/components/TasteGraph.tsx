@@ -32,26 +32,35 @@ export default function TasteGraph({
   };
 
   return (
-    <div style={{ width: '100%', height: heights[size] }}>
+    <div style={{ width: '100%', height: heights[size] }} className="relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg opacity-30 blur-xl"></div>
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data}>
-          <PolarGrid stroke="#e5e7eb" />
-          <PolarAngleAxis 
-            dataKey="criterion" 
-            tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+          <defs>
+            <linearGradient id="colorTaste" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.8}/>
+              <stop offset="50%" stopColor="#a855f7" stopOpacity={0.6}/>
+              <stop offset="100%" stopColor="#ec4899" stopOpacity={0.4}/>
+            </linearGradient>
+          </defs>
+          <PolarGrid stroke="#e0e7ff" strokeWidth={1.5} />
+          <PolarAngleAxis
+            dataKey="criterion"
+            tick={{ fill: '#4f46e5', fontSize: 14, fontWeight: 700 }}
           />
-          <PolarRadiusAxis 
-            angle={90} 
-            domain={[0, 10]} 
+          <PolarRadiusAxis
+            angle={90}
+            domain={[0, 10]}
             tick={{ fill: '#9ca3af', fontSize: 10 }}
+            stroke="#c7d2fe"
           />
-          <Radar 
-            name="Taste Profile" 
-            dataKey="value" 
-            stroke="#6366f1" 
-            fill="#6366f1" 
-            fillOpacity={0.3}
-            strokeWidth={2}
+          <Radar
+            name="Taste Profile"
+            dataKey="value"
+            stroke="url(#colorTaste)"
+            fill="url(#colorTaste)"
+            fillOpacity={0.5}
+            strokeWidth={3}
           />
         </RadarChart>
       </ResponsiveContainer>

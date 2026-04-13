@@ -8,6 +8,7 @@ import SearchResults from "./pages/SearchResults";
 import Dashboard from "./pages/Dashboard";
 import PublicProfile from "./pages/PublicProfile";
 import UsersPage from "./pages/UsersPage";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "profile", Component: Dashboard },
       { path: "user/:id", Component: PublicProfile },
       { path: "users", Component: UsersPage },
+      { path: "settings", Component: Settings },
       { path: "*", Component: NotFound },
     ],
   },

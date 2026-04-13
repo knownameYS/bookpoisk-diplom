@@ -35,13 +35,20 @@ export default function Header() {
     .toUpperCase();
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
+    <header className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="w-8 h-8 text-indigo-600" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg blur-sm opacity-50 group-hover:opacity-75 transition-opacity"></div>
+              <div className="relative bg-gradient-to-br from-indigo-600 to-purple-600 p-2 rounded-lg shadow-md">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+            </div>
             <div className="flex flex-col">
-              <span className="font-bold text-xl">BookRating</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                BookRating
+              </span>
               <span className="text-xs text-gray-500">Система "84"</span>
             </div>
           </Link>
@@ -70,7 +77,7 @@ export default function Header() {
                 <Search className="w-4 h-4" />
               </Link>
             </Button>
-            <Button variant="ghost" asChild className="hidden sm:flex">
+            <Button variant="ghost" asChild className="hidden sm:flex hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
               <Link to="/catalog">
                 <Library className="w-4 h-4 mr-2" />
                 Каталог
@@ -84,10 +91,12 @@ export default function Header() {
             {isLoggedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative hover:bg-indigo-50 transition-colors">
+                    <Avatar className="h-8 w-8 ring-2 ring-indigo-200 ring-offset-2">
                       <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-                      <AvatarFallback>{initials}</AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                        {initials}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -121,7 +130,11 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" asChild>
+              <Button
+                variant="outline"
+                asChild
+                className="border-2 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
+              >
                 <Link to="/login">Войти</Link>
               </Button>
             )}

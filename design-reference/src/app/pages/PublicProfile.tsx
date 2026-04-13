@@ -50,14 +50,14 @@ export default function PublicProfile() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Taste Profile */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
+        <Card className="lg:col-span-1 border-2 border-indigo-100 shadow-md">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
             <CardTitle className="text-lg">Профиль читателя</CardTitle>
             <p className="text-sm text-gray-600">
               Средние оценки по критериям
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <TasteGraph
               architecture={user.tasteProfile.architecture}
               characters={user.tasteProfile.characters}
@@ -67,25 +67,25 @@ export default function PublicProfile() {
               size="medium"
             />
             <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Architecture:</span>
-                <span className="font-semibold">{user.tasteProfile.architecture.toFixed(1)}</span>
+                <span className="font-semibold text-indigo-600">{user.tasteProfile.architecture.toFixed(1)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Characters:</span>
-                <span className="font-semibold">{user.tasteProfile.characters.toFixed(1)}</span>
+                <span className="font-semibold text-purple-600">{user.tasteProfile.characters.toFixed(1)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Language:</span>
-                <span className="font-semibold">{user.tasteProfile.language.toFixed(1)}</span>
+                <span className="font-semibold text-pink-600">{user.tasteProfile.language.toFixed(1)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Idea:</span>
-                <span className="font-semibold">{user.tasteProfile.idea.toFixed(1)}</span>
+                <span className="font-semibold text-blue-600">{user.tasteProfile.idea.toFixed(1)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Vibe:</span>
-                <span className="font-semibold">{user.tasteProfile.vibe.toFixed(1)}</span>
+                <span className="font-semibold text-green-600">{user.tasteProfile.vibe.toFixed(1)}</span>
               </div>
             </div>
           </CardContent>
@@ -94,8 +94,8 @@ export default function PublicProfile() {
         {/* Activity */}
         <div className="lg:col-span-2 space-y-6">
           {/* Ratings */}
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
               <CardTitle className="text-lg">Оценки пользователя</CardTitle>
             </CardHeader>
             <CardContent>
@@ -123,8 +123,8 @@ export default function PublicProfile() {
           </Card>
 
           {/* Reviews */}
-          <Card>
-            <CardHeader>
+          <Card className="shadow-md">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
               <CardTitle className="text-lg">Рецензии пользователя</CardTitle>
             </CardHeader>
             <CardContent>
