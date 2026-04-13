@@ -8,7 +8,7 @@ export default function CatalogPage() {
   return (
     <div className="space-y-6">
       <section className="surface-card p-5 sm:p-6">
-        <h1 className="text-3xl">Каталог книг</h1>
+        <h1 className="section-title">Каталог книг</h1>
         <p className="mt-2 text-sm text-slate-500">Единый visual language: чистая сетка, светлая типографика, аккуратные фильтры и акценты.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <input className="input-modern" placeholder="Поиск по названию" />

@@ -8,7 +8,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-10">
-      <section className="hero-gradient overflow-hidden rounded-3xl px-6 py-14 text-white shadow-[var(--shadow-lg)] sm:px-12">
+      <section className="hero-gradient overflow-hidden rounded-2xl px-6 py-14 text-white shadow-[var(--shadow-lg)] sm:px-12">
         <div className="max-w-3xl">
           <p className="mb-3 inline-block rounded-full bg-white/15 px-3 py-1 text-xs">Новая литературная экосистема</p>
           <h1 className="text-4xl font-bold leading-tight sm:text-5xl">Оценивайте книги честно: мастерство + эмоция по алгоритму «84».</h1>
@@ -23,7 +23,7 @@ export default function HomePage() {
       <section>
         <div className="mb-5 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl">Книги недели</h2>
+            <h2 className="text-3xl">Книги недели</h2>
             <p className="text-sm text-slate-500">Карточки полностью в новом стиле референса.</p>
           </div>
           <Link to="/catalog" className="btn-soft">Все книги</Link>

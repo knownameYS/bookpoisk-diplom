@@ -11,13 +11,13 @@ const nav = [
 export function Layout() {
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/80 backdrop-blur-xl">
-        <div className="container-shell flex items-center justify-between py-3">
+      <header className="sticky top-0 z-40 border-b bg-white/95 shadow-sm backdrop-blur-md">
+        <div className="container-shell flex items-center justify-between py-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-pink-500 text-sm font-bold text-white">84</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 text-sm font-bold text-white shadow-md">84</div>
             <div>
-              <p className="text-sm font-semibold">Bookpoisk</p>
-              <p className="text-xs text-slate-500">literary intelligence</p>
+              <p className="text-base font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Bookpoisk</p>
+              <p className="text-xs text-slate-500">Система «84»</p>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
@@ -40,7 +40,7 @@ export function Layout() {
 
       <main className="container-shell py-8"><Outlet /></main>
 
-      <footer className="mt-12 border-t bg-white/80">
+      <footer className="mt-12 border-t bg-white">
         <div className="container-shell grid gap-8 py-10 md:grid-cols-3">
           <div>
             <p className="text-sm font-semibold">Bookpoisk · Rating 84</p>

@@ -15,7 +15,7 @@ export default function BookPage() {
   return (
     <div className="space-y-6">
       <section className="gradient-ring">
-        <div className="grid gap-6 rounded-3xl bg-white p-6 lg:grid-cols-[240px_1fr]">
+        <div className="grid gap-6 rounded-2xl bg-white p-6 lg:grid-cols-[240px_1fr]">
           <div className="overflow-hidden rounded-2xl bg-slate-100">
             {data.cover_url ? (
               <img src={data.cover_url} alt={data.title} className="h-full w-full object-cover" />
@@ -26,7 +26,7 @@ export default function BookPage() {
 
           <div>
             <p className="tag">Страница книги</p>
-            <h1 className="mt-3 text-3xl">{data.title}</h1>
+            <h1 className="mt-3 text-4xl">{data.title}</h1>
             <p className="mt-2 text-slate-600">{data.description || 'Описание отсутствует.'}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link to={`/authors/${data.author_id ?? 'unknown'}`} className="btn-soft">Перейти к автору</Link>
