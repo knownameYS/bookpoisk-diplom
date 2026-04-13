@@ -6,7 +6,7 @@ function PageShell({ title, subtitle, children }: { title: string; subtitle: str
   return (
     <div className="space-y-5">
       <div className="surface-card p-6">
-        <h1 className="text-3xl">{title}</h1>
+        <h1 className="section-title">{title}</h1>
         <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
       </div>
       {children}

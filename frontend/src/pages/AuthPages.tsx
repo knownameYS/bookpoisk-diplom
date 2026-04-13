@@ -7,7 +7,7 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
   return (
     <div className="mx-auto max-w-md">
       <div className="gradient-ring">
-        <div className="rounded-3xl bg-white p-7 shadow-sm">
+        <div className="rounded-2xl bg-white p-7 shadow-[var(--shadow-md)]">
           <h1 className="text-2xl">{title}</h1>
           <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
           <div className="mt-6 space-y-4">{children}</div>

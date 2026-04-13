@@ -6,7 +6,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <section className="surface-card p-6">
-        <h1 className="text-3xl">Админка</h1>
+        <h1 className="section-title">Админка</h1>
         <p className="mt-2 text-sm text-slate-500">Полный UI приведен к общей дизайн-системе: карточки, таблицы, формы и действия.</p>
       </section>
 

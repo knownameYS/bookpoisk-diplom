@@ -14,7 +14,7 @@ type BookCardProps = {
 
 export function BookCard({ book }: BookCardProps) {
   return (
-    <Link to={`/books/${book.id}`} className="surface-card group block overflow-hidden p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+    <Link to={`/books/${book.id}`} className="surface-card group block overflow-hidden p-4 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]">
       <div className="flex gap-4">
         <div className="h-32 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
           {book.cover_url ? (
