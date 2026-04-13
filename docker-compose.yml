@@ -5,9 +5,9 @@ services:
     container_name: bookpoisk-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bookpoisk
-      POSTGRES_PASSWORD: bookpoisk
-      POSTGRES_DB: bookpoisk
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: book_service
     ports:
       - '5432:5432'
     volumes:
