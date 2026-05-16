@@ -1,29 +1,92 @@
 # Bookpoisk Diplom
 
-Full-stack приложение для поиска, оценки и критики книг на React + Express + Prisma + PostgreSQL.
+Полноценный сервис для поиска, оценки и обсуждения книг на `React + Express + Prisma + PostgreSQL`.
 
-## Что реализовано
-- Frontend (Vite/React/TS/Tailwind) с публичными страницами, auth, профилем, базовой админкой.
-- Backend (Express/Prisma/PostgreSQL/JWT/refresh token).
-- Алгоритм оценки **84** на frontend (live preview) и backend (server-side пересчёт).
-- Миграции Prisma с существующей схемой + расширения: `favorite_books`, `collections`, `collection_books`.
-- Seed с пользователями:
-  - admin: `admin@bookpoisk.local` / `Admin123!`
-  - demo: `demo@bookpoisk.local` / `Demo123!`
+## Что есть в проекте
 
-## Локальный запуск
-```bash
-cp .env.example .env
-docker compose up -d
+- frontend на `Vite + React + TypeScript + Tailwind`
+- backend на `Express + Prisma`
+- обязательный алгоритм оценки `84`
+- каталог книг, отзывы, статьи, профиль читателя
+- избранное, полки чтения, пользовательские коллекции
+- AI-поиск с локальным fallback-ранжированием
+- импорт каталога книг с `eksmo.ru`
+
+## Требования
+
+- `Node.js 20+`
+- `npm 10+`
+- `PostgreSQL 16+` или `docker compose`
+
+## Быстрый запуск
+
+Из корня проекта:
+
+```powershell
+Copy-Item backend\.env.example backend\.env -Force
+Copy-Item frontend\.env.example frontend\.env -Force
 npm install
+docker compose up -d postgres
 npm run db:migrate
 npm run db:seed
+```
+
+Если нужен полный каталог Eksmo:
+
+```powershell
+cd backend
+npm run catalog:import
+cd ..
+```
+
+Запуск backend и frontend:
+
+```powershell
+npm run dev:backend
+npm run dev:frontend
+```
+
+Или одной командой:
+
+```powershell
 npm run dev
 ```
 
-Backend: http://localhost:4000/api  
-Frontend: http://localhost:5173
+## Адреса
+
+- frontend: `http://127.0.0.1:5173`
+- backend API: `http://127.0.0.1:4000/api`
+
+## Полезные команды
+
+Проверка backend:
+
+```powershell
+cd backend
+npm test
+```
+
+Сборка frontend:
+
+```powershell
+cd frontend
+npm run build
+```
+
+Генерация Prisma client:
+
+```powershell
+cd backend
+npm run prisma:generate
+```
+
+## Тестовые пользователи после seed
+
+- `admin@bookpoisk.local` / `Admin123!`
+- `reader@bookpoisk.local` / `Reader123!`
+- `member@bookpoisk.local` / `Member123!`
 
 ## Где реализован алгоритм 84
-- Backend: `backend/src/utils/rating84.js`, используется в `backend/src/controllers/ratings.controller.js`.
-- Frontend (live preview): `frontend/src/features/rating/rating84.ts`, UI: `frontend/src/components/RatingDrawer.tsx`.
+
+- backend: `backend/src/common/rating84.js`
+- frontend: `frontend/src/features/rating/rating84.ts`

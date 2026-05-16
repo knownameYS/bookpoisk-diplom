@@ -1,97 +1,194 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { calculateRating84 } from '../features/rating/rating84';
-import { api } from '../api/client';
+import { api, getApiErrorMessage } from '../api/client';
+import { useToast } from './ToastProvider';
 
 const criteria = [
-  { key: 'architecture', title: 'Architecture', helper: 'Композиция, структура, ритм.' },
-  { key: 'characters', title: 'Characters', helper: 'Глубина и развитие персонажей.' },
-  { key: 'lang_style', title: 'Language', helper: 'Стиль, выразительность и точность.' },
-  { key: 'idea', title: 'Idea', helper: 'Сила и новизна концепции.' },
-  { key: 'vibe', title: 'Vibe', helper: 'Личное эмоциональное вовлечение.' }
+  { key: 'architecture', title: 'Композиция', helper: 'Структура, ритм и цельность повествования' },
+  { key: 'characters', title: 'Персонажи', helper: 'Глубина, развитие и убедительность героев' },
+  { key: 'language', title: 'Язык', helper: 'Стиль, точность и выразительность текста' },
+  { key: 'idea', title: 'Идея', helper: 'Сила замысла и то, насколько книга держит смысл' },
+  { key: 'vibe', title: 'Атмосфера', helper: 'Личное впечатление, послевкусие и эмоциональный отклик' }
 ] as const;
 
-export function RatingDrawer({ bookId }: { bookId: string }) {
-  const [open, setOpen] = useState(false);
-  const [vals, setVals] = useState({ architecture: 7, characters: 7, lang_style: 7, idea: 7, vibe: 7 });
-  const calc = calculateRating84(vals.architecture, vals.characters, vals.lang_style, vals.idea, vals.vibe);
+const MIN_REVIEW_LENGTH = 150;
 
-  const submit = async () => {
-    await api.post('/ratings', { book_id: bookId, ...vals });
-    alert('Оценка сохранена');
-    setOpen(false);
-  };
+export function RatingDrawer({ bookId }: { bookId: string }) {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewBody, setReviewBody] = useState('');
+  const [vals, setVals] = useState({ architecture: 7, characters: 7, language: 7, idea: 7, vibe: 7 });
+  const calc = calculateRating84(vals.architecture, vals.characters, vals.language, vals.idea, vals.vibe);
+
+  const trimmedReview = reviewBody.trim();
+  const reviewLength = trimmedReview.length;
+  const hasReview = reviewLength > 0;
+  const reviewTooShort = hasReview && reviewLength < MIN_REVIEW_LENGTH;
+
+  const summaryCards = useMemo(
+    () => [
+      { label: 'Объективный балл', value: calc.objectiveScore.toString(), accent: false },
+      { label: 'Множитель атмосферы', value: `× ${calc.multiplier}`, accent: true }
+    ],
+    [calc.multiplier, calc.objectiveScore]
+  );
+
+  async function submit() {
+    if (reviewTooShort) {
+      setErrorMessage(`Если вы добавляете рецензию, в ней должно быть не меньше ${MIN_REVIEW_LENGTH} символов`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      await api.put(`/ratings/books/${bookId}/rating`, {
+        ...vals,
+        ...(hasReview ? { reviewBody: trimmedReview } : {})
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['book', bookId] }),
+        queryClient.invalidateQueries({ queryKey: ['bookReviews', bookId] }),
+        queryClient.invalidateQueries({ queryKey: ['myProfile'] }),
+        queryClient.invalidateQueries({ queryKey: ['me'] }),
+        queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+        queryClient.invalidateQueries({ queryKey: ['libraryShelves'] })
+      ]);
+
+      showToast({
+        title: hasReview ? 'Оценка и рецензия сохранены' : 'Оценка сохранена',
+        message: hasReview
+          ? 'Новая рецензия уже появилась в блоке отзывов к книге.'
+          : 'Средний балл книги обновился по системе 84.',
+        variant: 'success'
+      });
+      setOpen(false);
+      setReviewBody('');
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, 'Не удалось сохранить оценку'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <>
-      <button className="btn-primary" onClick={() => setOpen(true)}>Оценить по системе 84</button>
-      {open && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 p-4 backdrop-blur-sm sm:p-8">
-          <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <div className="hero-gradient p-6 text-white">
-              <div className="flex items-center justify-between gap-4">
+      <button className="btn-primary" onClick={() => setOpen(true)}>Оценить книгу</button>
+      {open ? (
+        <div className="fixed inset-0 z-50 bg-black/70 p-4 backdrop-blur-sm sm:p-8">
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[34px] border border-[color:rgba(255,209,102,0.14)] bg-[color:var(--background-soft)] shadow-[var(--shadow-lg)]">
+            <div className="hero-gradient px-6 py-6 text-white md:px-8">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-2xl font-semibold">Rating 84 Breakdown</h3>
-                  <p className="mt-1 text-sm text-indigo-100">Сначала objectiveScore, затем vibe multiplier, затем финальный итог до 84.</p>
+                  <p className="mb-3 text-xs uppercase tracking-[0.18em] text-orange-100/80">Редактор оценки</p>
+                  <h3 className="text-3xl font-semibold">Оцените книгу по системе «84»</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-7 text-orange-100/78">
+                    Выставьте баллы по пяти критериям и при желании добавьте короткую рецензию
+                  </p>
                 </div>
-                <button className="btn-soft border-white/20 bg-white/10 text-white hover:bg-white/20" onClick={() => setOpen(false)}>Закрыть</button>
+                <button className="btn-soft border-white/20 bg-white/10 text-white hover:bg-white/15" onClick={() => setOpen(false)}>
+                  Закрыть
+                </button>
               </div>
             </div>
 
-            <div className="grid flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-[1.25fr_.9fr]">
-              <section className="space-y-5">
+            <div className="grid flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <section className="space-y-4">
                 {criteria.map((item) => {
                   const key = item.key;
                   const value = vals[key];
+
                   return (
                     <div key={key} className="surface-card p-4">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-3 flex items-start justify-between gap-4">
                         <div>
-                          <h4 className="text-sm font-semibold">{item.title}</h4>
-                          <p className="text-xs text-slate-500">{item.helper}</p>
+                          <h4 className="text-lg font-semibold text-[color:var(--text)]">{item.title}</h4>
+                          <p className="mt-1 text-sm leading-7 text-[color:var(--muted)]">{item.helper}</p>
                         </div>
-                        <span className="rounded-lg bg-indigo-50 px-2.5 py-1 text-sm font-semibold text-indigo-700">{value}</span>
+                        <span className="rounded-2xl bg-[color:var(--primary-soft)] px-3 py-1 text-sm font-semibold text-[color:var(--accent)]">
+                          {value}
+                        </span>
                       </div>
+
                       <input
                         type="range"
                         min={1}
                         max={10}
                         value={value}
-                        onChange={(e) => setVals((prev) => ({ ...prev, [key]: Number(e.target.value) }))}
-                        className="w-full accent-indigo-600"
+                        onChange={(event) => setVals((prev) => ({ ...prev, [key]: Number(event.target.value) }))}
+                        className="w-full accent-[color:var(--primary)]"
                       />
                     </div>
                   );
                 })}
+
+                <div className="surface-card p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-[color:var(--text)]">Рецензия</h4>
+                      <p className="mt-1 text-sm leading-7 text-[color:var(--muted)]">
+                        Необязательно, но если пишете, то не меньше 150 символов
+                      </p>
+                    </div>
+                    <span className={`rounded-2xl px-3 py-1 text-sm font-semibold ${reviewTooShort ? 'bg-[color:rgba(164,52,39,0.18)] text-[color:#ffbfaf]' : 'bg-[color:var(--primary-soft)] text-[color:var(--accent)]'}`}>
+                      {reviewLength}
+                    </span>
+                  </div>
+
+                  <textarea
+                    value={reviewBody}
+                    onChange={(event) => setReviewBody(event.target.value)}
+                    className="textarea-modern mt-4 min-h-[180px]"
+                    maxLength={5000}
+                    placeholder="Напишите, что вас зацепило в книге, что сработало или не сработало, какие остались ощущения 🙂"
+                  />
+                </div>
               </section>
 
               <aside className="space-y-4">
-                <div className="surface-card p-5">
-                  <h4 className="text-sm font-semibold text-slate-900">Формула</h4>
-                  <p className="mt-2 text-xs text-slate-600">objectiveScore = (Architecture + Characters + Language + Idea) × 1.4</p>
-                  <p className="mt-1 text-xs text-slate-600">finalScore = min(84, round(objectiveScore × multiplier))</p>
+                <div className="surface-panel space-y-4 p-5">
+                  {summaryCards.map((card) => (
+                    <div key={card.label} className="metric-pill">
+                      <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--muted)]">{card.label}</p>
+                      <p className={`mt-2 text-3xl font-semibold ${card.accent ? 'text-[color:var(--accent)]' : 'text-[color:var(--text)]'}`}>
+                        {card.value}
+                      </p>
+                    </div>
+                  ))}
+
+                  <div className="rounded-[28px] border border-[color:rgba(255,209,102,0.14)] bg-[linear-gradient(135deg,rgba(240,103,42,0.16),rgba(255,209,102,0.08))] p-6 text-center">
+                    <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--muted)]">Итоговый балл</p>
+                    <p className="mt-2 text-5xl font-semibold text-[color:var(--text)]">
+                      {calc.finalScore}
+                      <span className="ml-1 text-base text-[color:var(--muted)]">/84</span>
+                    </p>
+                  </div>
                 </div>
 
-                <div className="surface-card space-y-3 p-5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">objectiveScore</span>
-                    <span className="font-semibold text-indigo-700">{calc.objectiveScore}</span>
+                {errorMessage ? (
+                  <div className="rounded-2xl border border-[color:rgba(255,107,107,0.35)] bg-[color:rgba(255,107,107,0.08)] px-4 py-3 text-sm text-[color:#ffb3b3]">
+                    {errorMessage}
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">multiplier</span>
-                    <span className="font-semibold text-purple-700">× {calc.multiplier}</span>
-                  </div>
-                  <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-pink-50 p-4 text-center">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">finalScore</p>
-                    <p className="mt-1 text-4xl font-bold text-slate-900">{calc.finalScore}<span className="text-base text-slate-400">/84</span></p>
-                  </div>
-                </div>
+                ) : null}
 
-                <button onClick={submit} className="btn-primary w-full">Сохранить оценку</button>
+                <button
+                  onClick={submit}
+                  disabled={isSubmitting}
+                  className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isSubmitting ? 'Сохраняем...' : hasReview ? 'Сохранить оценку и рецензию' : 'Сохранить оценку'}
+                </button>
               </aside>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }
