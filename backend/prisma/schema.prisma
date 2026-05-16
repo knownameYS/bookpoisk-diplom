@@ -1,0 +1,365 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER  @map("user")
+  ADMIN @map("admin")
+
+  @@map("user_role")
+}
+
+enum ContentStatus {
+  DRAFT     @map("draft")
+  PUBLISHED @map("published")
+  HIDDEN    @map("hidden")
+
+  @@map("content_status")
+}
+
+enum ReviewReactionType {
+  LIKE    @map("like")
+  DISLIKE @map("dislike")
+
+  @@map("review_reaction_type")
+}
+
+model User {
+  id              String           @id @default(uuid()) @db.Uuid
+  username        String           @unique @db.Citext
+  email           String           @unique @db.Citext
+  passwordHash    String           @map("password_hash")
+  fullName        String?          @map("full_name") @db.VarChar(120)
+  birthDate       DateTime?        @map("birth_date") @db.Date
+  city            String?          @db.VarChar(80)
+  favoriteGenres  String?          @map("favorite_genres") @db.VarChar(160)
+  avatarUrl       String?          @map("avatar_url")
+  bio             String?          @db.VarChar(150)
+  role            UserRole         @default(USER)
+  isActive        Boolean          @default(true) @map("is_active")
+  showRatings     Boolean          @default(true) @map("show_ratings")
+  showReviews     Boolean          @default(true) @map("show_reviews")
+  showFavorites   Boolean          @default(true) @map("show_favorites")
+  showLibrary     Boolean          @default(true) @map("show_library")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  refreshTokens   RefreshToken[]
+  addedBooks      Book[]           @relation("BooksAdded")
+  ratings         Rating[]
+  reviews         Review[]
+  reviewReactions ReviewReaction[]
+  reviewComments  ReviewComment[]
+  articles        Article[]
+  articleComments ArticleComment[]
+  favorites       Favorite[]
+  collections     Collection[]
+  featuredBooks   ProfileFeaturedBook[]
+  followers       UserFollow[]     @relation("UserFollowers")
+  following       UserFollow[]     @relation("UserFollowing")
+
+  @@map("users")
+}
+
+model UserFollow {
+  followerId  String   @map("follower_id") @db.Uuid
+  followingId String   @map("following_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId, createdAt])
+  @@map("user_follows")
+}
+
+model ProfileFeaturedBook {
+  userId    String   @map("user_id") @db.Uuid
+  bookId    String   @map("book_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, bookId])
+  @@index([userId, sortOrder])
+  @@map("profile_featured_books")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([tokenHash])
+  @@map("user_refresh_tokens")
+}
+
+model Author {
+  id          String       @id @default(uuid()) @db.Uuid
+  fullName    String       @map("full_name")
+  birthDate   DateTime?    @map("birth_date") @db.Date
+  deathDate   DateTime?    @map("death_date") @db.Date
+  bio         String?
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  bookAuthors BookAuthor[]
+
+  @@map("authors")
+}
+
+model Genre {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @unique @db.Citext
+  description String?
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  bookGenres  BookGenre[]
+
+  @@map("genres")
+}
+
+model Tag {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique @db.Citext
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  bookTags  BookTag[]
+
+  @@map("tags")
+}
+
+model Book {
+  id              String           @id @default(uuid()) @db.Uuid
+  title           String
+  originalTitle   String?          @map("original_title")
+  description     String?
+  isbn13          String?
+  catalogSection  String?          @map("catalog_section")
+  catalogSectionSlug String?       @map("catalog_section_slug")
+  publicationYear Int?             @map("publication_year")
+  language        String?
+  coverUrl        String?          @map("cover_url")
+  sourceSite      String?          @map("source_site")
+  sourceUrl       String?          @map("source_url")
+  series          String?
+  publisher       String?
+  editor          String?
+  ageRestriction  String?          @map("age_restriction")
+  binding         String?
+  pageCount       Int?             @map("page_count")
+  weightGrams     Int?             @map("weight_grams")
+  thicknessMm     Int?             @map("thickness_mm")
+  bookFormat      String?          @map("book_format")
+  paperMaterial   String?          @map("paper_material")
+  readTimeHours   Float?           @map("read_time_hours")
+  addedByUserId   String?          @map("added_by_user_id") @db.Uuid
+  status          ContentStatus    @default(PUBLISHED)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  addedBy         User?            @relation("BooksAdded", fields: [addedByUserId], references: [id], onDelete: SetNull)
+  bookAuthors     BookAuthor[]
+  bookGenres      BookGenre[]
+  bookTags        BookTag[]
+  ratings         Rating[]
+  reviews         Review[]
+  articles        Article[]
+  favorites       Favorite[]
+  collectionBooks CollectionBook[]
+  featuredByUsers ProfileFeaturedBook[]
+
+  @@index([status, publicationYear, language])
+  @@index([catalogSectionSlug, status])
+  @@index([isbn13])
+  @@index([createdAt])
+  @@map("books")
+}
+
+model BookAuthor {
+  bookId      String  @map("book_id") @db.Uuid
+  authorId    String  @map("author_id") @db.Uuid
+  authorOrder Int?    @map("author_order")
+  role        String?
+  book        Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author      Author  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, authorId])
+  @@index([authorId])
+  @@map("book_authors")
+}
+
+model BookGenre {
+  bookId  String @map("book_id") @db.Uuid
+  genreId String @map("genre_id") @db.Uuid
+  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, genreId])
+  @@index([genreId])
+  @@map("book_genres")
+}
+
+model BookTag {
+  bookId String @map("book_id") @db.Uuid
+  tagId  String @map("tag_id") @db.Uuid
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+  @@index([tagId])
+  @@map("book_tags")
+}
+
+model Rating {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  bookId       String   @map("book_id") @db.Uuid
+  architecture Int
+  characters   Int
+  language     Int      @map("lang_style")
+  idea         Int
+  vibe         Int
+  finalScore   Int      @map("final_score")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId, finalScore])
+  @@map("ratings")
+}
+
+model Review {
+  id         String          @id @default(uuid()) @db.Uuid
+  bookId     String          @map("book_id") @db.Uuid
+  userId     String          @map("user_id") @db.Uuid
+  title      String
+  body       String
+  status     ContentStatus   @default(PUBLISHED)
+  isSpoiler  Boolean         @default(false) @map("is_spoiler")
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  book       Book            @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions  ReviewReaction[]
+  comments   ReviewComment[]
+
+  @@index([bookId, status])
+  @@index([userId, status])
+  @@map("reviews")
+}
+
+model ReviewReaction {
+  reviewId   String             @map("review_id") @db.Uuid
+  userId     String             @map("user_id") @db.Uuid
+  type       ReviewReactionType
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  review     Review             @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, userId])
+  @@index([reviewId, type, createdAt])
+  @@index([userId, createdAt])
+  @@map("review_reactions")
+}
+
+model ReviewComment {
+  id        String        @id @default(uuid()) @db.Uuid
+  reviewId  String        @map("review_id") @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  body      String
+  status    ContentStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  review    Review        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId, status])
+  @@index([userId, status])
+  @@map("review_comments")
+}
+
+model Article {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String
+  body      String
+  status    ContentStatus    @default(PUBLISHED)
+  bookId    String?          @map("book_id") @db.Uuid
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book?            @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  comments  ArticleComment[]
+
+  @@index([bookId, status])
+  @@index([userId, status])
+  @@map("articles")
+}
+
+model ArticleComment {
+  id        String        @id @default(uuid()) @db.Uuid
+  articleId String        @map("article_id") @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  body      String
+  status    ContentStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  article   Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, status])
+  @@index([userId, status])
+  @@map("article_comments")
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  bookId    String   @map("book_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId, createdAt])
+  @@map("favorite_books")
+}
+
+model Collection {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @map("user_id") @db.Uuid
+  title           String
+  description     String?
+  isPublic        Boolean          @default(false) @map("is_public")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collectionBooks CollectionBook[]
+
+  @@index([userId, createdAt])
+  @@index([isPublic, createdAt])
+  @@map("collections")
+}
+
+model CollectionBook {
+  collectionId String     @map("collection_id") @db.Uuid
+  bookId       String     @map("book_id") @db.Uuid
+  addedAt      DateTime   @default(now()) @map("added_at") @db.Timestamptz(6)
+  note         String?
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  book         Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, bookId])
+  @@index([bookId])
+  @@map("collection_books")
+}
